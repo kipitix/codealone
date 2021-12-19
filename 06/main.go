@@ -16,15 +16,9 @@ const (
 	DOWN
 	LEFT
 	RIGHT
-	FINISH
-	VISIT
 )
 
-const FIELD_SIZE = 160
-
 var reader = bufio.NewReader(os.Stdin)
-
-var field [FIELD_SIZE][FIELD_SIZE]Direction
 
 func readEnum() (dir Direction, eof bool) {
 	char, readErr := reader.ReadByte()
@@ -88,80 +82,31 @@ func moveForward(x, y int, dir Direction) (newX, newY int) {
 	return
 }
 
-func fill() {
-	// Start from center of field
-	x := FIELD_SIZE / 2
-	y := x
+func travel() (x, y int) {
+	x = 0
+	y = 0
 
 	for move, eof := readEnum(); !eof; move, eof = readEnum() {
-		field[x][y] = move
 		x, y = moveForward(x, y, move)
-	}
-	field[x][y] = FINISH
-}
-
-func travel() (up, down, left, right int) {
-	// Start from center of field
-	x := FIELD_SIZE / 2
-	y := x
-
-	// Counters
-	move := field[x][y]
-
-	for move != FINISH {
-
-		switch move {
-		case UP:
-			up++
-		case DOWN:
-			down++
-		case LEFT:
-			left++
-		case RIGHT:
-			right++
-		}
-
-		field[x][y] = VISIT
-		x, y = moveForward(x, y, move)
-		move = field[x][y]
-
-		fmt.Println(strings.Repeat("-", FIELD_SIZE))
-		printField()
 	}
 
 	return
 }
 
-func composeResult(up, down, left, right int) (result string) {
-	result += strings.Repeat("D", down)
-	result += strings.Repeat("L", left)
-	result += strings.Repeat("R", right)
-	result += strings.Repeat("U", up)
-	return
-}
-
-func printField() {
-	for y := FIELD_SIZE - 1; y >= 0; y-- {
-		for x := 0; x < FIELD_SIZE; x++ {
-			switch field[x][y] {
-			case UP:
-				fmt.Print("U")
-			case DOWN:
-				fmt.Print("D")
-			case LEFT:
-				fmt.Print("L")
-			case RIGHT:
-				fmt.Print("R")
-			case FINISH:
-				fmt.Print("*")
-			case VISIT:
-				fmt.Print("#")
-			default:
-				fmt.Print(" ")
-			}
-		}
-		fmt.Println()
+func composeResult(x, y int) (result string) {
+	if y < 0 {
+		result += strings.Repeat("D", -y)
 	}
+	if x < 0 {
+		result += strings.Repeat("L", -x)
+	}
+	if x > 0 {
+		result += strings.Repeat("R", x)
+	}
+	if y > 0 {
+		result += strings.Repeat("U", y)
+	}
+	return
 }
 
 func main() {
@@ -169,10 +114,6 @@ func main() {
 	if !processArgs() {
 		return
 	}
-
-	fill()
-
-	printField()
 
 	fmt.Println(composeResult(travel()))
 }
